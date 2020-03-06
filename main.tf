@@ -9,8 +9,8 @@ provider "google" {
 resource "google_compute_instance" "zabbix" {
   name         = "zabbix-app"
   machine_type = "g1-small"
-  zone         = "europe-north1-a"
-  tags         = ["zabbix"]
+  zone         = "${var.zone_instance}"
+  tags         = ["${var.zabbix_tag}"]
 
   boot_disk {
     initialize_params {
@@ -47,4 +47,22 @@ resource "google_compute_instance" "zabbix" {
   # provisioner "remote-exec" {
   #   inline = ["${file("scripts/setupzabbix.sh")}"]
   # }
+
+
+  resource "google_compute_firewall" "firewall_vpn" {
+    name = "allow-zabbix"
+
+    # name of net
+    network = "default"
+
+    allow {
+      protocol = "tcp"
+      ports = [
+        "443", "80", "10050", "10051"
+      ]
+    }
+
+    source_ranges = ["0.0.0.0/0"]
+    target_tags   = ["${var.zabbix_tag}"]
+  }
 }
