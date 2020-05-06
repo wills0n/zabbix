@@ -1,9 +1,9 @@
 #===============================================
-# Create zabbix server
+# Create instance
 #===============================================
 
-resource "google_compute_instance" "zabbix" {
-  name         = "zabbix-app"
+resource "google_compute_instance" "instance1" {
+  name         = "instance1"
   machine_type = "g1-small"
   zone         = var.zone_instance
   tags         = [var.zabbix_tag]
@@ -21,9 +21,9 @@ resource "google_compute_instance" "zabbix" {
   }
 
   metadata = {
-    ssh-keys = "appuser:${file("~/.ssh/appuser.pub")}"
+    sshKeys    = var.default_user
+    public_key = file("~/.ssh/appuser.pub")
   }
-
   connection {
     host        = self.network_interface.0.access_config.0.nat_ip
     type        = "ssh"
@@ -32,18 +32,12 @@ resource "google_compute_instance" "zabbix" {
   }
 
   provisioner "file" {
-    source      = "scripts/setupzabbix.sh"
-    destination = "~/setupzabbix.sh"
+    source      = "scripts/setupagent.sh"
+    destination = "~/setupagent.sh"
   }
-
-  provisioner "file" {
-    source      = "scripts/zabconf"
-    destination = "~/"
-  }
-
 
   # provisioner "remote-exec" {
-  #   inline = ["${file("scripts/setupzabbix.sh")}"]
+  #   inline = ["${file("scripts/setupagent.sh")}"]
   # }
 
 }
